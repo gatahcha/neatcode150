@@ -1,42 +1,52 @@
 package longest_repeating_character_replacement;
 
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 
 public class Solution {
     public int characterReplacement(String s, int k) {
-        
-        char[] str = s.toCharArray();
-        int len = str.length;
-        int lo = 0;
-        int hi = -1;
-        int max = -1;
 
-        HashMap<Integer, Character> map = new HashMap<>(); 
+        char[] charArray = s.toCharArray();
+        HashMap<Character, Integer> currentWindowList = new HashMap<>();
 
-        for ( int i = 0; i < len; i++ ){
-            if (!map.values().contains(str[i])) {
-                if ( map.size() > k ){
-                    map.remove(lo);
-                    lo = map.keySet()
-                            .stream()
-                            .parallel()
-                            .reduce(Math::min)
-                            .get();
-                    map.put(i, str[i]);
-                    
+        //slidingWindows properties;
+        int lo = -1;
+        int windowsLength = 0;
+        int maxLength = 0;
+
+        for (int i = 0 ; i < charArray.length; i++){
+            //increase the hi-index and windows length sliding windows by one
+            windowsLength++;
+            if (currentWindowList.containsKey(charArray[i])){
+                    int numCurChar = currentWindowList.get(charArray[i]);
+                    currentWindowList.put(charArray[i], numCurChar+1);
                 }
-                else {
-                    
+                else{
+                    currentWindowList.put(charArray[i], 1);
                 }
+            //set up logic if the the number of character but the majority is lessthan k
+            if (windowsLength - currentWindowList.values().stream().max(Integer::compareTo).orElse(0) > k){
+                //move the lower windows forward
+                do{
+                    lo++;
+                    int numCharloWindow = currentWindowList.get(charArray[lo]); // invariant : Should be above 0
+                    if (numCharloWindow > 1) currentWindowList.put(charArray[lo], numCharloWindow - 1);
+                    else currentWindowList.remove(charArray[lo]);
+                    windowsLength--;
+                } while (windowsLength - currentWindowList.values().stream().max(Integer::compareTo).orElse(0) > k);
             }
-            hi = i;
-            max = hi - lo + 1;
+            if (windowsLength > maxLength) maxLength = windowsLength;
         }
 
+        return maxLength;
+    }
 
+    public static void main(String[] args){
+        Solution solution = new Solution();
 
-        return 0;
+        String test1 = "AAABABB";
+        int result = solution.characterReplacement(test1, 1);
+
+        System.out.println("Result : " + result);
+
     }
 }
